@@ -6,7 +6,7 @@ import pyttsx3
 import openai
 
 
-openai.api_key = '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';#'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';
+openai.api_key = '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';
 
 # Initialize the recognizer
 r = sr.Recognizer()
