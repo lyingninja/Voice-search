@@ -1,76 +1,106 @@
-import sounddevice as sd
-import soundfile as sf
-import time
-import speech_recognition as sr
 import pyttsx3
-import openai
+import speech_recognition as sr
+import datetime
+# import wikipedia
+# import webbrowser
+import os
+import smtplib
+from tkinter.simpledialog import askstring
+
+engine = pyttsx3.init('sapi5')
+voices = engine.getProperty('voices')
+# print(voices[1].id)
+engine.setProperty('voice', voices[0].id)
 
 
-openai.api_key = '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';
-
-# Initialize the recognizer
-r = sr.Recognizer()
- 
-# Function to convert text to
-# speech
-def SpeakText(command):
-     
-    # Initialize the engine
-    engine = pyttsx3.init()
-    engine.say(command)
+def speak(audio):
+    engine.say(audio)
     engine.runAndWait()
-     
-def async_record(filename, duration, fs, channels):
-    print('recording')
-    myrecording = sd.rec(int(duration * fs), samplerate=fs, channels=channels)
-    # can execute commands 
-    print('Able to execute this before finishing.')
-    # printstuff(30)
-    # now wait until done before writing to file 
-    sd.wait()
-    sf.write(filename, myrecording, fs)
-    print('done recording')
 
 
-# Loop infinitely for user to
-# speak
-logs = [];
-while(True):
-     
-    # Exception handling to handle
-    # exceptions at the runtime
+def wishMe():
+    hour = int(datetime.datetime.now().hour)
+    if hour>=0 and hour<12:
+        speak('Good Morning!')
+
+    elif hour>=12 and hour<18:
+        speak('Good Afternoon!')   
+
+    else:
+        speak('Good Evening!')  
+
+    speak('I am Present Sir. Please tell me how may I help you')       
+
+def takeCommand():
+
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print('Listening...')
+        r.pause_threshold = 1
+        audio = r.listen(source)
+
     try:
-         
-        # use the microphone as source for input.
-        with sr.Microphone() as source:
+        print('Recognizing...')    
+        query = r.recognize_google(audio, language='en-in')
+        print(f'User said: {query}\n')
 
-            print('Listening...');
-             
-            # wait for a second to let the recognizer
-            # adjust the energy threshold based on
-            # the surrounding noise level
-            r.adjust_for_ambient_noise(source, duration=0.2);
-             
-            #listens for the user's input
-            audio2 = r.listen(source)
-             
-            # Using google to recognize audio
-            MyText = r.recognize_google(audio2)
-            MyText = MyText.lower()
- 
-            print("Your Query:", MyText);
-            logs.append({"role": "user", "content": MyText});
-            result = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=logs)["choices"][0]["message"]['content'];
-            logs.append({"role": "assistant", "content": result});
-            print("Answer:", result);
-            # SpeakText(MyText)
-             
-    except sr.RequestError as e:
-        print("Could not request results; {0}".format(e))
-         
-    except sr.UnknownValueError:
-        print("unknown error occurred")
+    except Exception as e:   
+        print('Say that again please...')  
+        return 'None'
+    return query
+
+# def sendEmail(to, content):
+#     server = smtplib.SMTP('smtp.gmail.com', 587)
+#     server.ehlo()
+#     server.starttls()
+#     server.login('creatermillow645569@gmail.com', 'fourfour')
+#     server.sendmail('creatermillow645569@gmail.com', to, content)
+#     server.close()
+
+if __name__ == '__main__':
+    wishMe()
+    while True:
+    # if 1:
+        query = takeCommand().lower()
+        print(query)
+
+        # Logic for executing tasks based on query
+        # if 'wikipedia' in query:
+        #     speak('Searching Wikipedia...')
+        #     query = query.replace('wikipedia', '')
+        #     results = wikipedia.summary(query, sentences=2)
+        #     speak('According to Wikipedia')
+        #     print(results)
+        #     speak(results)
+
+        # elif 'open youtube' in query:
+        #     webbrowser.open('youtube.com')
+
+        # elif 'open google' in query:
+        #     webbrowser.open('google.com')
+
+        # elif 'open stackoverflow' in query:
+        #     webbrowser.open('stackoverflow.com')   
 
 
-# playback file 
-# async_record('async_record.wav', 10, 16000, 1);
+        # elif 'play music' in query:
+        #     music_dir = 'D:\\Non Critical\\songs\\Favorite Songs2'
+        #     songs = os.listdir(music_dir)
+        #     print(songs)    
+        #     os.startfile(os.path.join(music_dir, songs[0]))
+
+        # elif 'the time' in query:
+        #     strTime = datetime.datetime.now().strftime('%H:%M:%S')    
+        #     speak(f'Sir, the time is {strTime}')
+
+        # elif 'email to' in query:
+        #     try:
+
+        #         speak('What should I say?')
+        #         content = askstring('Body', 'What do you want to send?')
+        #         to = input('Please enter the address of the reciever: ');   
+        #         sendEmail(to, content)
+        #         speak('Email has been sent!')
+        #     except Exception as e:
+        #         print(e)
+        #         speak('Sorry unable to send the email!')
